@@ -104,7 +104,7 @@ func ping() {
 	for {
 		select {
 		case <-t.C:
-			http.Get(os.Getenv("APP_URL"))
+			http.Get(os.Getenv("PING_URL"))
 		}
 	}
 }
