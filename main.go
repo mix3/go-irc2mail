@@ -50,8 +50,9 @@ var (
 	MAIL_SUBJECT   = GetEnvString("MAIL_SUBJECT")
 
 	// server
-	HOST = os.Getenv("HOST")
-	PORT = os.Getenv("PORT")
+	HOST        = os.Getenv("HOST")
+	PORT        = os.Getenv("PORT")
+	PING_MINUTE = GetEnvInt("PING_MINUTE")
 
 	TARGET_NAME = GetEnvString("TARGET_NAME")
 	AWAY_NAME   = GetEnvString("AWAY_NAME")
@@ -88,6 +89,14 @@ func GetEnvString(key string) string {
 	v := os.Getenv(key)
 	if v == "" {
 		log.Fatalf("required env %s", key)
+	}
+	return v
+}
+
+func GetEnvInt(key string) int {
+	v, err := strconv.Atoi(os.Getenv(key))
+	if err != nil {
+		log.Fatalf("env %s parse error: %v", key, err)
 	}
 	return v
 }
@@ -151,7 +160,7 @@ func NewIRCConn() *irc.Connection {
 }
 
 func ping(url string) {
-	t := time.NewTicker(time.Minute * 50)
+	t := time.NewTicker(time.Duration(PING_MINUTE) * time.Minute)
 	for {
 		select {
 		case <-t.C:
