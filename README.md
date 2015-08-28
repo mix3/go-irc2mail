@@ -1,161 +1,79 @@
 # go-irc2mail
 
-深淵なる理由で IRC のメンションやキーワードをメールに通知したいので ~~heroku に~~ 鯖に bot を上げてキーワードを監視して通知出来るようにするものを作った
+深淵なる理由で IRC のメンションやキーワードをメールに通知したいので VPS に bot を上げてキーワードを監視して通知出来るようにするものを作った
 
-## 設定項目
+## Usage
 
-環境変数で設定をする 項目は以下の通り
+### Gmail API
 
-### MAILGUN_APIKEY
+メール送信 に Gmail API を使用するので事前に OAuth2 の ClientID, ClientSecret, RefreshToken を取得しておく
 
+* [Google Developers Console](https://console.developers.google.com/)へ行く
+ * 適当なプロジェクトが無ければ作成する
+* Gmail API を有効にする
+ * API > Gmail API > APIを有効にする
+* 認証情報を追加する
+ * 認証情報 > 認証情報を追加 > OAuth 2.0 クライアント ID > その他
 
-mailgun の API キー
+この時点で ClientID, と ClientSecret が取得出来ている。
 
-### MAILGUN_DOMAIN
+RefreshToken は取得するためのコマンドを用意したので、以下のようにして指示に従って進めると取得可能
 
-mailgun のドメイン
-
-### IRC_NICKNAME
-
-IRC サーバ接続に使用する nickname
-
-### IRC_USERNAME
-
-IRC サーバ接続に使用する username
-
-### IRC_PASSWORD
-
-IRC サーバ接続に使用する password
-
-### IRC_ADDR
-
-接続する IRCサーバのアドレス e.g. host[:port]
-
-### IRC_USE_SSL
-
-IRC サーバに SSL を使って接続するかどうか. 必要なら true や 1、不要なら false や 0 を指定する
-
-### IRC_DEBUG
-
-go-ircevent の debug 出力設定. 必要なら true や 1、不要なら false や 0 を指定する
-
-### IRC_CHANNELS
-
-join するチャンネル指定 スペース区切り
-
-### IRC_MATCH_LIST
-
-反応するキーワードの指定
-
-### MAIL_FROM_NAME
-
-メール送信時の From name
-
-### MAIL_FROM_ADDR
-
-メール送信時の From アドレス
-
-### MAIL_TO_ADDR
-
-メール送信時の送信先アドレス
-
-### MAIL_SUBJECT
-
-メール送信時の件名
-
-### TARGET_NAME
-
-監視する IRC ユーザ名(ログにしか使ってない)
-
-### AWAY_NAME
-
-監視する IRC ユーザの離席中のユーザ名
-
-### APP_URL
-
-heroku に上げてるときのアプリの URL
-
-### DEBUG
-
-デバッグ出力するかどうか. 必要なら true や 1、不要なら false や 0 を指定する
-
-## 起動サンプル
-
-```sh
-#!/bin/sh
-
-set -e
-
-export MAILGUN_APIKEY="[mailgun apikey]"
-export MAILGUN_DOMAIN="[mailgun domain]"
-
-export IRC_NICKNAME="iku"
-export IRC_USERNAME="iku"
-export IRC_PASSWORD="******"
-export IRC_ADDR="example.com[:port]"
-export IRC_USE_SSL="true"
-export IRC_DEBUG="true"
-export IRC_CHANNELS="#channel1 #channel2"
-export IRC_MATCH_LIST="all target"
-
-export MAIL_FROM_NAME="target"
-export MAIL_FROM_ADDR="noreply@example.com"
-export MAIL_TO_ADDR="target@example.com"
-export MAIL_SUBJECT="irc2mail"
-
-export TARGET_NAME="target"
-export AWAY_NAME="zz_target"
-export APP_URL="http://localhost:19300"
-export DEBUG="true"
-
-export HOST=""
-export PORT="19300"
-export PING_MINUTE="15"
-
-go run main.go
+```
+go get github.com/mix3/go-irc2mail/cmd/rtkn
+rtkn --client_id ****** --client_secret ******
+.
+.
+.
 ```
 
-## Dockerfile サンプル
+### irc2mail
 
-```Dockerfile
-FROM ubuntu
+設定が必要なので config.yaml.sample をコピって OAuth2 の設定やら IRC 接続の設定やら通知の設定やらをする
 
-MAINTAINER mix3
+```yaml
+# gmail api でメール送信するための設定
+oauth2:
+  client_id:     "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX.apps.googleusercontent.com"
+  client_secret: "XXXXXXXXXXXXXXXXXXXXXXXX"
+  refresh_token: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 
-RUN apt-get update
-RUN apt-get -y install wget jq curl unzip
+# bot の irc ログイン設定
+ircevent:
+  nickname: "botname"
+  username: "botname"
+  password: "******"
+  host:     "irc.host"
+  port:     6667
+  use_ssl:  false
+  debug:    false
 
-WORKDIR /opt
+# 反応するチャンネル、キーワードの通知設定
+notice:
+  "botname":
+    "#channel":
+      keywords:
+        - "all"
+        - "botname"
+#       - .
+#       - .
+#       - .
+      to:             "notice@example.com"
+      subject_prefix: "irc2mail"
+      check_away:     false
+      away_name:      "zz_botname"
 
-RUN export ILLUSION_VERSION=`curl https://api.github.com/repos/mix3/go-irc2mail/releases | jq -r ".[0].tag_name"` && wget https://github.com/mix3/go-irc2mail/releases/download/${ILLUSION_VERSION}/go-irc2mail-${ILLUSION_VERSION}-linux-amd64.zip -O /opt/go-irc2mail.zip
-RUN unzip go-irc2mail.zip
-WORKDIR /opt/go-irc2mail
-
-ENV MAILGUN_APIKEY="[mailgun apikey]"
-ENV MAILGUN_DOMAIN="[mailgun domain]"
-
-ENV IRC_NICKNAME="iku"
-ENV IRC_USERNAME="iku"
-ENV IRC_PASSWORD="******"
-ENV IRC_ADDR="example.com[:port]"
-ENV IRC_USE_SSL="true"
-ENV IRC_DEBUG="true"
-ENV IRC_CHANNELS="#channel1 #channel2"
-ENV IRC_MATCH_LIST="all target"
-
-ENV MAIL_FROM_NAME="target"
-ENV MAIL_FROM_ADDR="noreply@example.com"
-ENV MAIL_TO_ADDR="target@example.com"
-ENV MAIL_SUBJECT="irc2mail"
-
-ENV TARGET_NAME="target"
-ENV AWAY_NAME="zz_target"
-ENV APP_URL="http://localhost:19300"
-ENV DEBUG="true"
-
-ENV HOST=""
-ENV PORT="19300"
-ENV PING_MINUTE="1"
-
-CMD ./go-irc2mail
+# アプリログ出力設定
+debug_log: false
 ```
+
+設定したら以下のようにして起動する
+
+```
+go get github.com/mix3/go-irc2mail/cmd/irc2mail
+irc2mail -c config.yaml # default で config.yaml を見るので -c ****** は省略可
+```
+
+## LICENSE
+
+MIT
