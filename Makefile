@@ -7,8 +7,8 @@ clean:
 	rm -rf pkg/*
 
 binary: clean
-	gox -osarch="linux/amd64 darwin/amd64" \
-		-output "pkg/{{.Dir}}-${GIT_VER}-{{.OS}}-{{.Arch}}" \
+	cd cmd/irc2mail && env CGO_ENABLED=0 gox -osarch="linux/amd64 darwin/amd64" \
+		-output "../../pkg/{{.Dir}}-${GIT_VER}-{{.OS}}-{{.Arch}}" \
 		-ldflags "-X main.version ${GIT_VER} -X main.buildDate ${DATE}"
 
 package: binary

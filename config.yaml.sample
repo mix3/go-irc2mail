@@ -1,0 +1,33 @@
+# gmail api でメール送信するための設定
+oauth2:
+  client_id:     "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX.apps.googleusercontent.com"
+  client_secret: "XXXXXXXXXXXXXXXXXXXXXXXX"
+  refresh_token: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+
+# bot の設定 irc ログイン設定
+ircevent:
+  nickname: "botname"
+  username: "botname"
+  password: "******"
+  host:     "irc.host"
+  port:     6667
+  use_ssl:  false
+  debug:    false
+
+# 反応するチャンネル、キーワードの通知設定
+notice:
+  "botname":
+    "#channel":
+      keywords:
+        - "all"
+        - "botname"
+#       - .
+#       - .
+#       - .
+      to:             "notice@example.com"
+      subject_prefix: "irc2mail"
+      check_away:     false
+      away_name:      "zz_botname"
+
+# アプリログ出力設定
+debug_log: false

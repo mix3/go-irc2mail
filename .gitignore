@@ -1,2 +1,4 @@
 run
 pkg
+config.yaml
+docker/config.yaml
